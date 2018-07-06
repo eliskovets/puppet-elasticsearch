@@ -21,14 +21,18 @@ module Puppet_X
 
         opts.delete 'work' if min_version '5.0.0', package_name, catalog
         opts.delete 'home' if min_version '5.4.0', package_name, catalog
-        opts.delete 'logs' if min_version '6.0.0', package_name, catalog
-        opts.delete 'data' if min_version '6.0.0', package_name, catalog
 
-        if min_version '6.0.0', package_name, catalog
-          [opt_flag, ["--path.conf=${#{opts['conf']}}"]]
-        else
-          [opt_flag, opts.map { |k, v| "-#{opt_flag}default.path.#{k}=${#{v}}" }.sort]
-        end
+        opt_args = if min_version '6.0.0', package_name, catalog
+                     []
+                   else
+                     opts.map do |k, v|
+                       "-#{opt_flag}default.path.#{k}=${#{v}}"
+                     end.sort
+                   end
+
+        opt_args << '--quiet' if min_version '5.0.0', package_name, catalog
+
+        [opt_flag, opt_args]
       end
 
       # Get the correct option flag depending on whether Elasticsearch is post
